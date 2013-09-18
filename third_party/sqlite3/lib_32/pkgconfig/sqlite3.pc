@@ -1,0 +1,13 @@
+# Package Information for pkg-config
+
+prefix=/remote/srm406/prakashn/personal/sqlite/sqlite-autoconf-3071700/install_32
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: SQLite
+Description: SQL database engine
+Version: 3.7.17
+Libs: -L${libdir} -lsqlite3
+Libs.private: -ldl -lpthread 
+Cflags: -I${includedir}

@@ -1,0 +1,8 @@
+#Create a relocatable object (*.o)
+gcc -c -g malloc.c -o malloc.o
+
+#Create a static library
+ar rcs libmalloc.a malloc.o
+
+#If some product is linking to a static malloc implementation and is been compiled using gcc, then place the
+# memproflite so before the sttaic library in the link line 

@@ -1,0 +1,3 @@
+#Here we observes that immaterial of where we place the libmemproflite, our
+#malloc gets picked up. This is because we are using g++ and hence our
+#lib gets picked up

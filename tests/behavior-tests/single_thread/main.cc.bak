@@ -1,0 +1,58 @@
+#include <iostream>
+#include <memproflite.h>
+
+using namespace std;
+
+void* abc(void* arg) {
+  int index = *(static_cast<int*>(arg));
+  for(int i=0; i<1000; i++) {
+    int *x = (int*)malloc(100);
+    count[index]++;
+  }
+} 
+
+int main() {
+  int *x;
+  x = new int[10];
+  memproflite_start();
+  x = new int[10];
+  memproflite_stop();
+  x = new int[10];
+  x = new int[10];
+  x = new int[10];
+  memproflite_start();
+  x = new int[10];
+  memproflite_stop();
+  x = new int[10];
+  x = new int[10];
+  x = new int[10];
+  memproflite_start();
+  x = new int[10];
+  memproflite_stop();
+  x = new int[10];
+  x = new int[10];
+  x = new int[10];
+  memproflite_start();
+  x = new int[10];
+  memproflite_stop();
+  x = new int[10];
+  x = new int[10];
+  x = new int[10];
+  memproflite_start();
+  x = new int[10];
+  memproflite_stop();
+  const int num_of_threads = 5;
+  pthread_t thread[num_of_threads];
+  count = new int[num_of_threads];
+  int index[num_of_threads];
+  for(int i=0; i<num_of_threads; i++) {
+    count[i] = 0;
+    index[i] = i;
+  }
+  for(int i=0; i<num_of_threads; i++) {
+    pthread_create(&thread[i], NULL,abc, &index[i]);
+  }
+  for(int i=0; i<num_of_threads; i++) {
+    pthread_join(thread[i], NULL);
+  }
+}

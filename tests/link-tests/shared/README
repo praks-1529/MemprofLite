@@ -1,0 +1,8 @@
+#Create a reloacatable objecct (*.o). NOTE: Must usse -fPIC 
+g++ -fPIC -c malloc.c -o malloc.o
+
+#Create a shared lib
+g++ -shared malloc.o -o libmalloc.so
+
+#If product links to some shared malloc implementation, then place 
+#memproflite.so before that shared lib in the link line

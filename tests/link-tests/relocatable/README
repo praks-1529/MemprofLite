@@ -1,0 +1,5 @@
+#Create a relocatable object (*.o)
+g++ -c malloc.c -o malloc.o
+
+#Create a static library
+ar rcs libmalloc.c malloc.o
