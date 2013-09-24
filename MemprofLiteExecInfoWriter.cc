@@ -63,6 +63,7 @@ MemprofLiteExecInfoWriter::GenerateMapFile(const char* a_log_folder) {
     ParseProcessMapLine(tbuf, &db);
   };
   fclose(fpr);
+  (GETENV()->map_collection()).Prepare();
   return MEMPROFLITE_SUCCESS;
 }
 
@@ -99,12 +100,17 @@ MemprofLiteExecInfoWriter::ParseProcessMapLine(const char* a_map_line,
   MemprofLiteUtils::Tokenize(a_map_line," ", tokens);
   if(tokens.size() == 6) {
     std::string exec_name = chomp(tokens[5]);
-    if(IsELFFormat(exec_name) && !IsStripped(exec_name) && IsBinaryReadExecuteable(tokens[1])) {
+    if(IsELFFormat(exec_name) && 
+       !IsStripped(exec_name) && 
+       IsBinaryReadExecuteable(tokens[1]) &&
+       !IsLibFiltered(exec_name)) {
       memproflite_addr_t_ start_addr, end_addr;
       start_addr = end_addr = 0;
-      if(!IsStaticLib(exec_name)) {
-        start_addr = strtol(tokens[0].substr(0, (tokens[0].size() - tokens[0].find_first_of('-',0)+1)).c_str(), NULL, 16);
-        end_addr   = strtol(tokens[0].substr(tokens[0].find_first_of('-',0)+1, (tokens[0].size()-tokens[0].find_first_of('-',0)+1)).c_str(), NULL, 16); 
+      start_addr = strtol(tokens[0].substr(0, (tokens[0].size() - tokens[0].find_first_of('-',0)+1)).c_str(), NULL, 16);
+      end_addr   = strtol(tokens[0].substr(tokens[0].find_first_of('-',0)+1, (tokens[0].size()-tokens[0].find_first_of('-',0)+1)).c_str(), NULL, 16); 
+      (GETENV()->map_collection()).InsertLib(start_addr, end_addr, exec_name);
+      if(IsStaticLib(exec_name)) {
+        start_addr = end_addr = 0;
       }
       sprintf(buf, "INSERT INTO [lib_start_end_addr] VALUES(%lu, %lu, \"%s\",\"%s\")", MPL_ADDR(start_addr), MPL_ADDR(end_addr) , Basename(exec_name).c_str(), exec_name.c_str());
       db->MemprofLite_execute1(buf);
@@ -160,7 +166,7 @@ MemprofLiteExecInfoWriter::ProcessLib(const std::string &a_lib,
   db->BeginTransaction();
   /*! The addresses are of the type bfd_vma which are unsigned long */
   memproflite_addr_t_ start_a, end_a;
-  MapItemCollection &map_collection = MemprofLite::getInstance()->env_info()->map_collection();
+  MapItemCollection &map_collection = GETENV()->map_collection();
   for (int i = 0; i < actual_symbols-1; i++) {
     start_a = MEMPROFLITE_SYM_VAL(bfd_asymbol_value(symbol_table[i]));
     end_a   = MEMPROFLITE_SYM_VAL(bfd_asymbol_value(symbol_table[i+1])-1);

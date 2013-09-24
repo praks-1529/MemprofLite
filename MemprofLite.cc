@@ -360,6 +360,7 @@ MemprofLite::CreateENVInfo(void) {
     env_info_->set_log_info(log_info);
     env_info_->set_filter_info(filter_info);
     env_info_->set_focus_info(focus_info);
+    env_info_->set_is_explicit((NULL != MemprofLiteUtils::GetENV("MPL_RPT_EXPLICIT")));
   }
 }
 

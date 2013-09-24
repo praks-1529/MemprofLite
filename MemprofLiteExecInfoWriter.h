@@ -63,14 +63,29 @@ class MapItemCollection {
     MapItemCollection() { 
       map_vector_.clear();
     }
+    void InsertLib(memproflite_addr_t_ a_start_addr, 
+                   memproflite_addr_t_ a_end_addr, 
+                   std::string a_func_name) {
+      exclude_lib_.push_back(std::pair<memproflite_addr_t_, memproflite_addr_t_>(a_start_addr, a_end_addr));
+    }
     void Insert(memproflite_addr_t_ a_addr, std::string a_func_name) {
       map_vector_.push_back(MapItem(a_addr, a_func_name));
     }
     std::string QueryName(memproflite_addr_t_ a_addr) {
-      return BinarySearch(a_addr, 0, map_vector_.size()-1).name();
+      for(unsigned int i=0; i<exclude_lib_.size(); i++) {
+        if(a_addr >= exclude_lib_[i].first && a_addr<= exclude_lib_[i].second) {
+          return BinarySearch(a_addr, 0, map_vector_.size()-1).name();
+        }
+      }
+      return undefined_item_.name();
     }
     memproflite_addr_t_ QueryAddr(memproflite_addr_t_ a_addr) {
-      return BinarySearch(a_addr, 0, map_vector_.size()-1).start();
+      for(unsigned int i=0; i<exclude_lib_.size(); i++) {
+        if(a_addr >= exclude_lib_[i].first && a_addr<= exclude_lib_[i].second) {
+          return BinarySearch(a_addr, 0, map_vector_.size()-1).start();
+        }
+      }
+      return undefined_item_.start();
     }
     void Prepare(void) {
       std::sort(map_vector_.begin(), map_vector_.end());
@@ -133,6 +148,7 @@ class MapItemCollection {
     }
     std::vector<MapItem> map_vector_;
     MapItem undefined_item_;
+    std::vector< std::pair<memproflite_addr_t_, memproflite_addr_t_> > exclude_lib_;  
 };
 
 /*!****************************************************************************
@@ -230,6 +246,15 @@ class MemprofLiteExecInfoWriter {
         } 
         bfd_close(abfd);
         return true;
+      }
+    }
+    static bool IsLibFiltered(const std::string &a_bin_name) {
+      /*! TODO: This has to be done through MPL_FILTER and MPL_FOCUS */
+      if(std::string::npos != a_bin_name.rfind("libmemproflite")) {
+        return true;
+      } else {
+        printf("%s\n", a_bin_name.c_str());
+        return false;
       }
     }
     /*! Chomp the string */

@@ -135,16 +135,9 @@ class MemprofLiteENV {
   public:
     /*! Constructor */
     MemprofLiteENV(void) : log_info_(NULL), filter_info_(NULL), 
-                           focus_info_(NULL), is_valid_(false) {
+                           focus_info_(NULL), is_explicit_(false), is_valid_(false) {
     }
-    /*! is_valid mutator */
-    void set_is_valid(bool a_is_valid) {
-     is_valid_ = a_is_valid;
-    }
-    /*! is_valid_accessor */
-    bool is_valid(void) const { 
-      return is_valid_;
-    }
+    /*! mutators */
     void set_log_info(MemprofLiteENV_LOG_FOLDER* a_log_info) {
       log_info_ = a_log_info;
     }
@@ -154,6 +147,13 @@ class MemprofLiteENV {
     void set_focus_info(MemprofLiteENV_FOCUS *a_focus_info) {
       focus_info_ = a_focus_info;
     }
+    void set_is_explicit(bool a_is_explicit) {
+      is_explicit_ = a_is_explicit;
+    }
+    void set_is_valid(bool a_is_valid) {
+     is_valid_ = a_is_valid;
+    }
+    /*! All accessors */
     MemprofLiteENV_LOG_FOLDER* log_info(void) {
       return log_info_;
     }
@@ -166,11 +166,18 @@ class MemprofLiteENV {
     MapItemCollection& map_collection(void) {
       return map_collection_;
     }
+    bool is_explicit(void) const {
+      return is_explicit_;
+    }
+    bool is_valid(void) const { 
+      return is_valid_;
+    }
   private:
     MemprofLiteENV_LOG_FOLDER* log_info_;
     MemprofLiteENV_FILTER* filter_info_;
     MemprofLiteENV_FOCUS* focus_info_;
     MapItemCollection map_collection_;
+    bool is_explicit_;
     bool is_valid_;
 };
 
@@ -252,5 +259,7 @@ class MemprofLite {
     /*! Freeing_thread_ */
     memproflite_pthread_t_ free_in_progress_;
 };
- 
+
+#define  GETENV() (MemprofLite::getInstance()->env_info())
+
 #endif    /* MEMPROFLITE_INT_H */

@@ -121,8 +121,15 @@ MemprofLiteHookDefault::RecordMalloc(memproflite_size_t_ &a_size,
   for (int j = 0; j < nptrs; j++) {
     if(ADDR_UNDEFINED != (func_start_addr = ResolveFuncAddr(MPL_ADDR(stack_buffer_[j])))) {
       if(0 == cur_alloc->count(func_start_addr)) {
+        /* Make sure the function names are unique. In case of recursion, 
+         * same function gets accounted for multiple times. Hence this check! */
         cur_alloc->insert(func_start_addr);
         addr_vs_malloc_[func_start_addr] += a_size;  
+        if(GETENV()->is_explicit()) {
+         /* When explicit reporting is on, we have to consider only top most 
+          * func of the stack */
+          break;
+        }
       }
     }
   }
@@ -162,8 +169,7 @@ MemprofLiteHookDefault::RecordFree(memproflite_voidp_ a_ptr) {
  ******************************************************************************/
 memproflite_addr_t_ 
 MemprofLiteHookDefault::ResolveFuncAddr(memproflite_addr_t_ a_addr) {
-  MapItemCollection &map_collection = MemprofLite::getInstance()->env_info()->map_collection();
-  return (map_collection.QueryAddr(a_addr));
+  return (GETENV()->map_collection()).QueryAddr(a_addr);
 }
 
 /*!****************************************************************************
@@ -174,6 +180,5 @@ MemprofLiteHookDefault::ResolveFuncAddr(memproflite_addr_t_ a_addr) {
  ******************************************************************************/
 std::string
 MemprofLiteHookDefault::ResolveFuncName(memproflite_addr_t_ a_addr) {
-  MapItemCollection &map_collection = MemprofLite::getInstance()->env_info()->map_collection();
-  return map_collection.QueryName(MPL_ADDR(a_addr));
+  return (GETENV()->map_collection()).QueryName(MPL_ADDR(a_addr));
 }
