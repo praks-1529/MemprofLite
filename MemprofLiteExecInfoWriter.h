@@ -253,7 +253,6 @@ class MemprofLiteExecInfoWriter {
       if(std::string::npos != a_bin_name.rfind("libmemproflite")) {
         return true;
       } else {
-        printf("%s\n", a_bin_name.c_str());
         return false;
       }
     }
