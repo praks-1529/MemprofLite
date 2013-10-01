@@ -1,6 +1,6 @@
 #include <iostream>
 #include <memproflite.h>
-
+#include <stdlib.h>
 using namespace std;
 
 int* def() {
