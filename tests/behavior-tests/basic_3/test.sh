@@ -5,10 +5,18 @@ MPL_RPT_EXPLICIT=1
 export MPL_RPT_EXPLICIT
 ./test
 
-ref=`grep new *.txt`
+ref=`grep def *.txt`
 echo $ref
-if [[ $ref == "operator new(unsigned long) | 1600 | 800" ]]; then
+if [[ $ref == "def() | 800 | 0" ]]; then
   echo "CP#0 : PASSED"
+else
+  echo "CP#1 : FAILED"
+fi
+
+ref=`grep main *.txt`
+echo $ref
+if [[ $ref == "main | 400 | 400" ]]; then
+  echo "CP#1 : PASSED"
 else
   echo "CP#1 : FAILED"
 fi
@@ -16,7 +24,7 @@ fi
 ref=`grep abc *.txt | wc -l`
 echo $ref
 if [[ $ref == "0" ]]; then
-  echo "CP#1 : PASSED"
+  echo "CP#2 : PASSED"
 else
-  echo "CP#1 : FAILED"
+  echo "CP#2 : FAILED"
 fi

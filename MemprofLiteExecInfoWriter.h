@@ -65,87 +65,15 @@ class MapItemCollection {
     }
     void InsertLib(memproflite_addr_t_ a_start_addr, 
                    memproflite_addr_t_ a_end_addr, 
-                   std::string a_func_name) {
-      exclude_lib_.push_back(std::pair<memproflite_addr_t_, memproflite_addr_t_>(a_start_addr, a_end_addr));
-    }
-    void Insert(memproflite_addr_t_ a_addr, std::string a_func_name) {
-      map_vector_.push_back(MapItem(a_addr, a_func_name));
-    }
-    std::string QueryName(memproflite_addr_t_ a_addr) {
-      for(unsigned int i=0; i<exclude_lib_.size(); i++) {
-        if(a_addr >= exclude_lib_[i].first && a_addr<= exclude_lib_[i].second) {
-          return BinarySearch(a_addr, 0, map_vector_.size()-1).name();
-        }
-      }
-      return undefined_item_.name();
-    }
-    memproflite_addr_t_ QueryAddr(memproflite_addr_t_ a_addr) {
-      for(unsigned int i=0; i<exclude_lib_.size(); i++) {
-        if(a_addr >= exclude_lib_[i].first && a_addr<= exclude_lib_[i].second) {
-          return BinarySearch(a_addr, 0, map_vector_.size()-1).start();
-        }
-      }
-      return undefined_item_.start();
-    }
-    void Prepare(void) {
-      std::sort(map_vector_.begin(), map_vector_.end());
-    }
+                   std::string a_func_name);
+    void Insert(memproflite_addr_t_ a_addr, std::string a_func_name);
+    std::string QueryName(memproflite_addr_t_ a_addr);
+    memproflite_addr_t_ QueryAddr(memproflite_addr_t_ a_addr);
+    void Prepare(void);
   private:
    MapItem& BinarySearch(const memproflite_addr_t_ &addr,
                          memproflite_ul_t_ low, 
-                         memproflite_ul_t_ high) {
-      if(map_vector_.size() == 0) {
-        return undefined_item_;
-      }
-#if LINEAR
-      /* Lets do linear search for time being */
-      for(memproflite_ul_t_ i=0; i<map_vector_.size()-1; i++) {
-        if(addr >=  (map_vector_[i]).start() && addr < (map_vector_[i+1]).start()) {
-          return (map_vector_[i]).name();
-        }
-      }
-      return (map_vector_[map_vector_.size()-1]).name();
-#else
-      if(low >= high) {
-        if(low == 0) {
-          return undefined_item_;
-        } else {
-          return map_vector_[low];
-        }
-      }else {
-        memproflite_ul_t_ mid = (low+high)/2;
-        if(mid == 0 && high == 1) {
-          if((addr >= map_vector_[0].start() && addr <= map_vector_[1].start())) {
-            return map_vector_[0];
-          } else {
-            return undefined_item_;
-          }
-        } else if(mid == 0 && high == 0) {
-          if(addr >= map_vector_[0].start()) {
-            return map_vector_[0];
-          } else {
-            /* If it is less than start(), we can definitely say it is undefined */
-            return undefined_item_;
-          }
-        }
-        if(addr == map_vector_[mid].start()) {
-          return map_vector_[mid];
-        } else if(addr == map_vector_[mid+1].start()) {
-          return map_vector_[mid+1];
-        } else if(addr == map_vector_[mid-1].start()) {
-          return map_vector_[mid-1];
-        } else if(addr >= map_vector_[mid].start() && addr < map_vector_[mid+1].start()) {
-          return map_vector_[mid];
-        } else if(addr <= map_vector_[mid].start() && addr >= map_vector_[mid-1].start()) {
-          return map_vector_[mid-1];
-        } else if(addr > map_vector_[mid].start() && addr > map_vector_[mid+1].start()) {
-          return BinarySearch(addr, mid+1, high);
-        } else {
-          return BinarySearch(addr, low, mid-1);
-        }
-      }
-#endif
-    }
+                         memproflite_ul_t_ high);
     std::vector<MapItem> map_vector_;
     MapItem undefined_item_;
     std::vector< std::pair<memproflite_addr_t_, memproflite_addr_t_> > exclude_lib_;  
@@ -196,66 +124,15 @@ class MemprofLiteExecInfoWriter {
     static void GetBinaryName(char* a_file, 
                               char *a_map_file_name);
     /*! Tells if the binary is stripped */
-    static int IsStripped(const std::string &a_bin_name) { 
-      bfd *abfd = bfd_openr(a_bin_name.c_str(), NULL);
-      if(!abfd) {
-        return true;
-      } 
-      if(!bfd_check_format(abfd, bfd_object)) {
-        bfd_close(abfd);
-        return true;
-      } 
-      if(0 == bfd_get_symtab_upper_bound(abfd)) {
-        bfd_close(abfd);
-        return true; 
-      } else { 
-        bfd_close(abfd);
-        return false; 
-      }
-    }
+    static int IsStripped(const std::string &a_bin_name);
     /*! Checks if the permissions is r-X */
-    static bool IsBinaryReadExecuteable(const std::string &a_permissions) { 
-      //if(a_permissions[0] == 'r' && a_permissions[2] == 'x') {
-      if(!(a_permissions.compare("r-xp"))) {
-        return true;
-      } else {
-        return false;
-      }
-    }
+    static bool IsBinaryReadExecuteable(const std::string &a_permissions); 
     /*! Tells if the lib is shared or static */
-    static bool IsStaticLib(const std::string &a_bin_name) { 
-      if(a_bin_name.find(".so") != std::string::npos) {
-        return false;
-      } else {
-        return true;
-      }
-    }
-
+    static bool IsStaticLib(const std::string &a_bin_name);
     /*! Tells if the binary is ELF format or not */
-    static int IsELFFormat(const std::string &a_bin_name) {
-      if(-1 == access(a_bin_name.c_str(), R_OK)) {
-        return false;
-      } 
-      bfd *abfd = bfd_openr(a_bin_name.c_str(), NULL);
-      if(!abfd) {
-        return false;
-      } else {
-        if(!bfd_check_format(abfd, bfd_object)) {
-          bfd_close(abfd);
-          return false;
-        } 
-        bfd_close(abfd);
-        return true;
-      }
-    }
-    static bool IsLibFiltered(const std::string &a_bin_name) {
-      /*! TODO: This has to be done through MPL_FILTER and MPL_FOCUS */
-      if(std::string::npos != a_bin_name.rfind("libmemproflite")) {
-        return true;
-      } else {
-        return false;
-      }
-    }
+    static int IsELFFormat(const std::string &a_bin_name);
+    /*! Tells if user has opted to filter out "a_bin_name" */
+    static bool IsLibFiltered(const std::string &a_bin_name);
     /*! Chomp the string */
     static std::string chomp(const std::string &a_str) {
       std::string ret = a_str;
@@ -284,21 +161,7 @@ class MemprofLiteExecInfoWriter {
     static int compare_symbols (const void *ap, 
                                 const void *bp);
     /*! Demangle the name */
-    static std::string DemangleName(const char* a_mangled_name) { 
-#ifndef DEMANGLE
-      return std::string(a_mangled_name);
-#else
-      int status;
-      char * realname = abi::__cxa_demangle(a_mangled_name, 0, 0, &status);
-      if(0 == status) {
-        std::string s_real(realname);
-        free(realname);
-        return s_real;
-      } else {
-        return a_mangled_name;
-      }
-#endif
-    }
+    static std::string DemangleName(const char* a_mangled_name);
 };
 
 #endif    /* MEMPROFLITEEXECINFOWRITER_H */

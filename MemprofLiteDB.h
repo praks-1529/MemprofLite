@@ -34,7 +34,7 @@ class MemprofLiteDB {
     /*! Get the text */
     std::string MemprofLite_get_TEXT(const char* statement);
     /*! Get the INTEGER */
-    const memproflite_ll_t_ MemprofLite_get_INTEGER(const char *statement);
+    memproflite_ll_t_ MemprofLite_get_INTEGER(const char *statement);
     /*! Begin transaction */
     void BeginTransaction(void);
     /*! End transaction */

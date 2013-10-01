@@ -22,6 +22,127 @@
 #include <MemprofLiteUtils.h>
 
 #define MEMPROFLITE_SYM_VAL(x) ( x == (memproflite_addr_t_)-1 ? 0 : x )
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+void
+MapItemCollection::InsertLib(memproflite_addr_t_ a_start_addr, 
+                             memproflite_addr_t_ a_end_addr, 
+                             std::string a_func_name) {
+  exclude_lib_.push_back(std::pair<memproflite_addr_t_, memproflite_addr_t_>(a_start_addr, a_end_addr));
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+void 
+MapItemCollection::Insert(memproflite_addr_t_ a_addr, 
+    std::string a_func_name) {
+  map_vector_.push_back(MapItem(a_addr, a_func_name));
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+std::string 
+MapItemCollection::QueryName(memproflite_addr_t_ a_addr) {
+  for(unsigned int i=0; i<exclude_lib_.size(); i++) {
+    if(a_addr >= exclude_lib_[i].first && a_addr<= exclude_lib_[i].second) {
+      return BinarySearch(a_addr, 0, map_vector_.size()-1).name();
+    }
+  }
+  return undefined_item_.name();
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+memproflite_addr_t_ 
+MapItemCollection::QueryAddr(memproflite_addr_t_ a_addr) {
+  for(unsigned int i=0; i<exclude_lib_.size(); i++) {
+    if(a_addr >= exclude_lib_[i].first && a_addr<= exclude_lib_[i].second) {
+      return BinarySearch(a_addr, 0, map_vector_.size()-1).start();
+    }
+  }
+  return undefined_item_.start();
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+void 
+MapItemCollection::Prepare(void) {
+  std::sort(map_vector_.begin(), map_vector_.end());
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+MapItem& 
+MapItemCollection::BinarySearch(const memproflite_addr_t_ &addr,
+                                memproflite_ul_t_ low, 
+                                memproflite_ul_t_ high) {
+  if(map_vector_.size() == 0) {
+    return undefined_item_;
+  }
+  if(low >= high) {
+    if(low == 0) {
+      return undefined_item_;
+    } else {
+      return map_vector_[low];
+    }
+  }else {
+    memproflite_ul_t_ mid = (low+high)/2;
+    if(mid == 0 && high == 1) {
+      if((addr >= map_vector_[0].start() && addr <= map_vector_[1].start())) {
+        return map_vector_[0];
+      } else {
+        return undefined_item_;
+      }
+    } else if(mid == 0 && high == 0) {
+      if(addr >= map_vector_[0].start()) {
+        return map_vector_[0];
+      } else {
+        /* If it is less than start(), we can definitely say it is undefined */
+        return undefined_item_;
+      }
+    }
+    if(addr == map_vector_[mid].start()) {
+      return map_vector_[mid];
+    } else if(addr == map_vector_[mid+1].start()) {
+      return map_vector_[mid+1];
+    } else if(addr == map_vector_[mid-1].start()) {
+      return map_vector_[mid-1];
+    } else if(addr >= map_vector_[mid].start() && addr < map_vector_[mid+1].start()) {
+      return map_vector_[mid];
+    } else if(addr <= map_vector_[mid].start() && addr >= map_vector_[mid-1].start()) {
+      return map_vector_[mid-1];
+    } else if(addr > map_vector_[mid].start() && addr > map_vector_[mid+1].start()) {
+      return BinarySearch(addr, mid+1, high);
+    } else {
+      return BinarySearch(addr, low, mid-1);
+    }
+  }
+}
 /*!****************************************************************************
  * \class  MemprofLiteExecInfoWriter
  * 
@@ -373,4 +494,125 @@ MemprofLiteExecInfoWriter::compare_symbols (const void *ap, const void *bp) {
   /* Finally, if we can't distinguish them in any other way, try to
    *      get consistent results by sorting the symbols by name.  */
   return strcmp (an, bn);
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+int 
+MemprofLiteExecInfoWriter::IsStripped(const std::string &a_bin_name) { 
+  bfd *abfd = bfd_openr(a_bin_name.c_str(), NULL);
+  if(!abfd) {
+    return true;
+  } 
+  if(!bfd_check_format(abfd, bfd_object)) {
+    bfd_close(abfd);
+    return true;
+  } 
+  if(0 == bfd_get_symtab_upper_bound(abfd)) {
+    bfd_close(abfd);
+    return true; 
+  } else { 
+    bfd_close(abfd);
+    return false; 
+  }
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+bool 
+MemprofLiteExecInfoWriter::IsBinaryReadExecuteable(const std::string &a_permissions) { 
+  //if(a_permissions[0] == 'r' && a_permissions[2] == 'x') {
+  if(!(a_permissions.compare("r-xp"))) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+bool 
+MemprofLiteExecInfoWriter::IsStaticLib(const std::string &a_bin_name) { 
+  if(a_bin_name.find(".so") != std::string::npos) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+int 
+MemprofLiteExecInfoWriter::IsELFFormat(const std::string &a_bin_name) {
+  if(-1 == access(a_bin_name.c_str(), R_OK)) {
+    return false;
+  } 
+  bfd *abfd = bfd_openr(a_bin_name.c_str(), NULL);
+  if(!abfd) {
+    return false;
+  } else {
+    if(!bfd_check_format(abfd, bfd_object)) {
+      bfd_close(abfd);
+      return false;
+    } 
+    bfd_close(abfd);
+    return true;
+  }
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+bool 
+MemprofLiteExecInfoWriter::IsLibFiltered(const std::string &a_bin_name) {
+  if(!GETENV()->filter_info()->is_valid()) return false;
+  std::vector<std::string> filter_list = GETENV()->filter_info()->filter_by();
+  for(unsigned int i=0; i<filter_list.size(); i++) {
+    if(std::string::npos != a_bin_name.rfind(filter_list[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/*!****************************************************************************
+ * \class            \author Prakash S - 10/01/2013
+ *
+ *  \brief 
+ * 
+ ******************************************************************************/
+std::string 
+MemprofLiteExecInfoWriter::DemangleName(const char* a_mangled_name) { 
+#ifndef DEMANGLE
+  return std::string(a_mangled_name);
+#else
+  int status;
+  char * realname = abi::__cxa_demangle(a_mangled_name, 0, 0, &status);
+  if(0 == status) {
+    std::string s_real(realname);
+    free(realname);
+    return s_real;
+  } else {
+    return a_mangled_name;
+  }
+#endif
 }

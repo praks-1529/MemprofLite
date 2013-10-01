@@ -3,9 +3,9 @@ make clean
 make
 ./test
 
-ref=`grep main *.txt`
+ref=`grep __libc_start_main *.txt | wc -l`
 echo $ref
-if [[ $ref == "main | 44 | 44" ]]; then
+if [[ $ref == "0" ]]; then
   echo "CP#1 : PASSED"
 else
   echo "CP#1 : FAILED"

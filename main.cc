@@ -37,7 +37,6 @@ void* abc(void* arg) {
 } 
 
 int xyz() {
-  //memproflite_start();
   const int num_of_threads = 1;
   pthread_t thread[num_of_threads];
   int index[num_of_threads];
@@ -50,7 +49,6 @@ int xyz() {
   for(int i=0; i<num_of_threads; i++) {
     pthread_join(thread[i], NULL);
   }
-  memproflite_stop();
 }
 
 int main() {

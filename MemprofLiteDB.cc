@@ -90,7 +90,7 @@ MemprofLiteDB::MemprofLite_get_TEXT(const char* statement) {
  *  \brief 
  * 
  ******************************************************************************/
-const memproflite_ll_t_
+memproflite_ll_t_
 MemprofLiteDB::MemprofLite_get_INTEGER(const char *statement) {
   memproflite_ull_t_ ret_val=-1;
   sqlite3_stmt *stmt;

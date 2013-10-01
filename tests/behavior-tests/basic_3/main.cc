@@ -10,9 +10,7 @@ void def() {
 }
 
 void abc() {
-  int *x = new int[100];
   def();
-  free(x);
 } 
 
 int main() {

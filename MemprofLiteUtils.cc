@@ -145,6 +145,7 @@ MemprofLiteUtils::Tokenize(const char* ip_line,
                            const char* delim, 
                            std::vector<std::string> &a_tokens) {
   a_tokens.clear();
+  if(!ip_line) return;
   char *token;
   char *saveptr;
   token = strtok_r(const_cast<char*>(ip_line), delim , &saveptr);

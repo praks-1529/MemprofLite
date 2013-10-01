@@ -21,6 +21,7 @@
  */
 #include <pthread.h>
 #include <list>
+#include <vector>
 #include <MemprofLiteUtils.h>
 #include <ThreadContext.h>
 #include <MemprofLiteExecInfoWriter.h>
@@ -91,6 +92,14 @@ class MemprofLiteENV_FILTER {
   public:
     /*! Constructor */
     MemprofLiteENV_FILTER(const char* a_filter) {
+      MemprofLiteUtils::Tokenize(a_filter, ",", filter_by_);
+      // Add some predefined item for filtering libmemproflite
+      filter_by_.push_back("libmemproflite");
+      filter_by_.push_back("libstdc++");
+      filter_by_.push_back("libpthread");
+      filter_by_.push_back("libz");
+      filter_by_.push_back("libsqlite");
+      filter_by_.push_back("libc");
     }
     bool is_valid(void) {
       if(filter_by_.size() != 0) {
@@ -99,8 +108,10 @@ class MemprofLiteENV_FILTER {
         return false;
       }
     }
+    std::vector<std::string>& filter_by(void) { return filter_by_; }
+    
   private:
-    std::list<std::string> filter_by_;
+    std::vector<std::string> filter_by_;
 };
 
 /*!****************************************************************************
@@ -113,6 +124,7 @@ class MemprofLiteENV_FOCUS {
   public:
     /*! Constructor */
     MemprofLiteENV_FOCUS(const char* a_focus) {
+      MemprofLiteUtils::Tokenize(a_focus, ",", focus_by_);
     }
     bool is_valid(void) {
       if(focus_by_.size() != 0) {
@@ -122,7 +134,7 @@ class MemprofLiteENV_FOCUS {
       }
     }
   private:
-    std::list<std::string> focus_by_;
+    std::vector<std::string> focus_by_;
 };
 
 /*!****************************************************************************
