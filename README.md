@@ -12,8 +12,8 @@ This is a memory profiler to track the memory allocations in your product.
 Whenever you link  this library in your program and turn the profiler ON, all 
 the malloc() calls are intercepted by this profiler and are being tracked. If you 
 are using any memory manager already in your product and still want to use this 
-profiler, you can do it. However that may need modifying a part of the code and 
-re-compiling the code. Also the library is thread safe and helps you track the 
+profiler, you can do it. However that may need modification of the code and 
+re-compiling. Also the library is thread safe and helps you track the 
 memory consumed in each thread. 
 
 Linking
@@ -43,6 +43,7 @@ main() {
 ```
 
 - Start profiler always
+
 If the memproflite library was compiled using START_STATIC, then there is no need to add above 
 memproflite_(start()|stop()) API's to start/stop profiling. This usage model is targeted to 
 those who do not want to make any code changes to their application. 

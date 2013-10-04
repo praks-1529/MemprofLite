@@ -258,8 +258,6 @@ class MemprofLite {
     void* (*real_malloc_)(size_t);
     /*! original_free_*/
     void (*real_free_)(void*);
-    /*! The instance flag */
-    static bool instance_flag_; 
     /*! The singleton instance */
     static MemprofLite memproflite_;
     /*! Mutex for a syncronization */

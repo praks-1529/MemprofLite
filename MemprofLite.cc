@@ -34,7 +34,6 @@ extern "C" {
 #endif // end #ifdef CUSTOM_ALLOC
 
 /*! Static variables of singleton class */
-bool MemprofLite::instance_flag_       = false;
 MemprofLite MemprofLite::memproflite_;
 pthread_key_t MemprofLite::file_ptr_key_;
 bool static_start = true;
@@ -128,7 +127,6 @@ void register_free_cpp(void (*a_real_free)(void*)) {
  * 
  ******************************************************************************/
 MemprofLite::MemprofLite() {
-  instance_flag_      = false;
   pthread_mutex_init(&memproflite_mutex_, NULL);
   pthread_key_create(&file_ptr_key_, free_thread_specific_context);
   free_in_progress_ = -1;
@@ -168,12 +166,7 @@ MemprofLite::~MemprofLite() {
  ******************************************************************************/
 MemprofLite*
 MemprofLite::getInstance(void) {
-  if(instance_flag_) {
-   return &memproflite_;
-  } else {
-    memproflite_.instance_flag_ = true;
-    return &memproflite_;
-  }
+  return &memproflite_;
 }
 
 /*!****************************************************************************
